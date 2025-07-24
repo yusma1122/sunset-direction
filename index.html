@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sunset Finder</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2rem;
+      transition: background 1s ease;
+      color: #222;
+    }
+    h1 { margin-bottom: 1rem; }
+    .icon { font-size: 3rem; }
+    button {
+      padding: 0.6rem 1rem;
+      font-size: 1rem;
+      margin-top: 1rem;
+      cursor: pointer;
+    }
+    #status, #location, #sunset, #countdown, #tips, #aksi {
+      margin-top: 1rem;
+      font-size: 1.1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="icon">🌇</div>
+  <h1>Sunset di Lokasimu</h1>
+  <div id="status">Mengambil lokasi...</div>
+  <div id="location"></div>
+  <div id="sunset"></div>
+  <div id="countdown"></div>
+  <div id="tips"></div>
+  <button onclick="tampilkanKebaikan()">Lakukan Kebaikan</button>
+  <div id="aksi" style="font-weight: bold;"></div>
+
+  <script>
+    function updateBackground() {
+      const hour = new Date().getHours();
+      if (hour < 6) document.body.style.background = "#1d3557";       // dini hari
+      else if (hour < 12) document.body.style.background = "#a8dadc"; // pagi
+      else if (hour < 16) document.body.style.background = "#f1faee"; // siang
+      else if (hour < 19) document.body.style.background = "#ffb703"; // sore
+      else document.body.style.background = "#023047";                // malam
+    }
+
+    function tampilkanKebaikan() {
+      const aksiList = [
+        "Ucapkan terima kasih ke seseorang 🌼",
+        "Ambil waktu 1 menit untuk merenung 🙏",
+        "Tersenyum ke orang asing hari ini 🙂",
+        "Bagikan hal baik ke teman 🤝",
+        "Berdoa untuk orang lain 💛"
+      ];
+      const randomAksi = aksiList[Math.floor(Math.random() * aksiList.length)];
+      document.getElementById("aksi").textContent = randomAksi;
+    }
+
+    function countdownToSunset(sunsetTime) {
+      const interval = setInterval(() => {
+        const now = new Date();
+        const distance = sunsetTime - now;
+        if (distance < 0) {
+          document.getElementById("countdown").textContent = "🌅 Matahari telah terbenam.";
+          clearInterval(interval);
+          return;
+        }
+        const hrs = Math.floor(distance / (1000 * 60 * 60));
+        const mins = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((distance % (1000 * 60)) / 1000);
+        document.getElementById("countdown").textContent = `Countdown ke sunset: ${hrs}j ${mins}m ${secs}d`;
+      }, 1000);
+    }
+
+    function ambilDataSunset() {
+      if (!navigator.geolocation) {
+        document.getElementById("status").textContent = "Browser tidak mendukung GPS.";
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition((pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        document.getElementById("status").textContent = "✅ Lokasi ditemukan.";
+        document.getElementById("location").textContent = `Koordinat: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+
+        fetch(`https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&formatted=0`)
+          .then(res => res.json())
+          .then(data => {
+            const sunsetUTC = new Date(data.results.sunset);
+            const localSunset = sunsetUTC.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            document.getElementById("sunset").textContent = `🌞 Sunset diperkirakan pukul: ${localSunset}`;
+            countdownToSunset(sunsetUTC);
+          });
+
+        // Tips berburu sunset
+        const tipsList = [
+          "📷 Datang 15 menit sebelum sunset untuk warna terbaik.",
+          "🌄 Cari tempat terbuka atau agak tinggi untuk pemandangan maksimal.",
+          "🌤️ Cek prakiraan cuaca, langit cerah = warna cantik.",
+          "🧘 Sunset adalah waktu terbaik untuk refleksi diri."
+        ];
+        const randomTip = tipsList[Math.floor(Math.random() * tipsList.length)];
+        document.getElementById("tips").textContent = `💡 Tips: ${randomTip}`;
+      }, () => {
+        document.getElementById("status").textContent = "❌ Gagal mendapatkan lokasi.";
+      });
+    }
+
+    updateBackground();
+    ambilDataSunset();
+  </script>
+</body>
+</html>

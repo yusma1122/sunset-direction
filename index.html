@@ -2,116 +2,546 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Sunset Finder</title>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: white;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    .background-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .header {
       text-align: center;
-      padding: 2rem;
-      transition: background 1s ease;
-      color: #222;
+      margin-bottom: 30px;
+      padding-top: 20px;
     }
-    h1 { margin-bottom: 1rem; }
-    .icon { font-size: 3rem; }
-    button {
-      padding: 0.6rem 1rem;
-      font-size: 1rem;
-      margin-top: 1rem;
+
+    .app-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(45deg, #ff6b6b, #ffa726);
+      border-radius: 20px;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      animation: pulse 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.05); }
+    }
+
+    .app-title {
+      font-size: 28px;
+      font-weight: 300;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+
+    .app-subtitle {
+      font-size: 14px;
+      opacity: 0.8;
+      font-weight: 300;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 25px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    }
+
+    .status-card {
+      text-align: center;
+    }
+
+    .status-icon {
+      font-size: 50px;
+      margin-bottom: 15px;
+      display: block;
+    }
+
+    .status-text {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+
+    .location-text {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 15px;
+    }
+
+    .sunset-time {
+      font-size: 32px;
+      font-weight: 700;
+      color: #ffa726;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      margin: 15px 0;
+    }
+
+    .compass-container {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      margin: 20px auto;
+    }
+
+    #compass {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      border: 2px solid rgba(255,255,255,0.3);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .compass-info {
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    .direction-text {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .degree-text {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    .action-button {
+      width: 100%;
+      padding: 18px;
+      background: linear-gradient(45deg, #ff6b6b, #ffa726);
+      border: none;
+      border-radius: 15px;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
       cursor: pointer;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      transition: all 0.3s ease;
+      margin-bottom: 15px;
     }
-    #status, #location, #sunset, #countdown, #tips, #aksi {
-      margin-top: 1rem;
-      font-size: 1.1rem;
+
+    .action-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+    }
+
+    .action-button:active {
+      transform: translateY(0);
+    }
+
+    .secondary-button {
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(10px);
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .info-item {
+      text-align: center;
+      padding: 15px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .info-item-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .info-item-label {
+      font-size: 12px;
+      opacity: 0.8;
+      margin-bottom: 5px;
+    }
+
+    .info-item-value {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 10px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error-state {
+      color: #ff6b6b;
+    }
+
+    .success-state {
+      color: #4ecdc4;
+    }
+
+    @media (max-width: 380px) {
+      .container {
+        padding: 15px;
+      }
+      
+      .compass-container {
+        width: 180px;
+        height: 180px;
+      }
+      
+      .sunset-time {
+        font-size: 28px;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="icon">🌇</div>
-  <h1>Sunset di Lokasimu</h1>
-  <div id="status">Mengambil lokasi...</div>
-  <div id="location"></div>
-  <div id="sunset"></div>
-  <div id="countdown"></div>
-  <div id="tips"></div>
-  <button onclick="tampilkanKebaikan()">Lakukan Kebaikan</button>
-  <div id="aksi" style="font-weight: bold;"></div>
+  <div class="background-overlay"></div>
+  
+  <div class="container">
+    <div class="header">
+      <div class="app-icon">🌅</div>
+      <h1 class="app-title">Sunset Finder</h1>
+      <p class="app-subtitle">Temukan waktu sunset terbaik di lokasimu</p>
+    </div>
+
+    <div class="card status-card">
+      <span class="status-icon" id="statusIcon">📍</span>
+      <div class="status-text" id="statusText">Menentukan lokasi Anda...</div>
+      <div class="location-text" id="locationText"></div>
+      <div class="sunset-time" id="sunsetTime"></div>
+    </div>
+
+    <div class="card">
+      <div class="compass-container">
+        <canvas id="compass" width="200" height="200"></canvas>
+      </div>
+      <div class="compass-info">
+        <div class="direction-text" id="directionText">Menunggu lokasi...</div>
+        <div class="degree-text" id="degreeText"></div>
+      </div>
+    </div>
+
+    <button class="action-button" onclick="refreshLocation()">
+      <span id="buttonText">🔄 Refresh Lokasi</span>
+    </button>
+
+    <button class="action-button secondary-button" onclick="shareLocation()">
+      📤 Bagikan Lokasi Sunset
+    </button>
+
+    <div class="info-grid" id="infoGrid" style="display: none;">
+      <div class="info-item">
+        <span class="info-item-icon">🌅</span>
+        <div class="info-item-label">Sunrise</div>
+        <div class="info-item-value" id="sunriseTime">--:--</div>
+      </div>
+      <div class="info-item">
+        <span class="info-item-icon">☀️</span>
+        <div class="info-item-label">Siang Hari</div>
+        <div class="info-item-value" id="dayLength">-- jam</div>
+      </div>
+      <div class="info-item">
+        <span class="info-item-icon">🧭</span>
+        <div class="info-item-label">Arah Sunset</div>
+        <div class="info-item-value" id="sunsetDirection">Barat</div>
+      </div>
+      <div class="info-item">
+        <span class="info-item-icon">📅</span>
+        <div class="info-item-label">Tanggal</div>
+        <div class="info-item-value" id="currentDate"></div>
+      </div>
+    </div>
+  </div>
 
   <script>
-    function updateBackground() {
-      const hour = new Date().getHours();
-      if (hour < 6) document.body.style.background = "#1d3557";       // dini hari
-      else if (hour < 12) document.body.style.background = "#a8dadc"; // pagi
-      else if (hour < 16) document.body.style.background = "#f1faee"; // siang
-      else if (hour < 19) document.body.style.background = "#ffb703"; // sore
-      else document.body.style.background = "#023047";                // malam
+    let currentLat = 0;
+    let currentLng = 0;
+    let sunsetAzimuth = 270; // Default west
+
+    function updateStatus(icon, text, isLoading = false, isError = false) {
+      document.getElementById('statusIcon').textContent = icon;
+      const statusTextEl = document.getElementById('statusText');
+      
+      if (isLoading) {
+        statusTextEl.innerHTML = `<span class="loading-spinner"></span>${text}`;
+      } else {
+        statusTextEl.textContent = text;
+        statusTextEl.className = isError ? 'status-text error-state' : 'status-text success-state';
+      }
     }
 
-    function tampilkanKebaikan() {
-      const aksiList = [
-        "Ucapkan terima kasih ke seseorang 🌼",
-        "Ambil waktu 1 menit untuk merenung 🙏",
-        "Tersenyum ke orang asing hari ini 🙂",
-        "Bagikan hal baik ke teman 🤝",
-        "Berdoa untuk orang lain 💛"
-      ];
-      const randomAksi = aksiList[Math.floor(Math.random() * aksiList.length)];
-      document.getElementById("aksi").textContent = randomAksi;
-    }
+    function drawCompass() {
+      const canvas = document.getElementById('compass');
+      const ctx = canvas.getContext('2d');
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const radius = 90;
 
-    function countdownToSunset(sunsetTime) {
-      const interval = setInterval(() => {
-        const now = new Date();
-        const distance = sunsetTime - now;
-        if (distance < 0) {
-          document.getElementById("countdown").textContent = "🌅 Matahari telah terbenam.";
-          clearInterval(interval);
-          return;
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw outer circle
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+      ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Draw compass points
+      const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+      for (let i = 0; i < 8; i++) {
+        const angle = (i * 45 - 90) * Math.PI / 180;
+        const x1 = centerX + Math.cos(angle) * (radius - 15);
+        const y1 = centerY + Math.sin(angle) * (radius - 15);
+        const x2 = centerX + Math.cos(angle) * (radius - 5);
+        const y2 = centerY + Math.sin(angle) * (radius - 5);
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = i % 2 === 0 ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.6)';
+        ctx.lineWidth = i % 2 === 0 ? 3 : 2;
+        ctx.stroke();
+
+        // Draw direction labels
+        if (i % 2 === 0) {
+          const labelX = centerX + Math.cos(angle) * (radius - 25);
+          const labelY = centerY + Math.sin(angle) * (radius - 25);
+          
+          ctx.fillStyle = 'rgba(255,255,255,0.9)';
+          ctx.font = 'bold 14px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(directions[i], labelX, labelY);
         }
-        const hrs = Math.floor(distance / (1000 * 60 * 60));
-        const mins = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const secs = Math.floor((distance % (1000 * 60)) / 1000);
-        document.getElementById("countdown").textContent = `Countdown ke sunset: ${hrs}j ${mins}m ${secs}d`;
-      }, 1000);
+      }
+
+      // Draw sunset indicator
+      const sunsetAngle = (sunsetAzimuth - 90) * Math.PI / 180;
+      const sunsetX = centerX + Math.cos(sunsetAngle) * (radius - 30);
+      const sunsetY = centerY + Math.sin(sunsetAngle) * (radius - 30);
+
+      // Sunset pointer
+      ctx.beginPath();
+      ctx.arc(sunsetX, sunsetY, 8, 0, 2 * Math.PI);
+      ctx.fillStyle = '#ffa726';
+      ctx.fill();
+      ctx.strokeStyle = '#ff6b6b';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Draw line from center to sunset
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(sunsetX, sunsetY);
+      ctx.strokeStyle = '#ffa726';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Center dot
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 4, 0, 2 * Math.PI);
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.fill();
     }
 
-    function ambilDataSunset() {
+    function getDirectionFromAzimuth(azimuth) {
+      const directions = ['Utara', 'Timur Laut', 'Timur', 'Tenggara', 'Selatan', 'Barat Daya', 'Barat', 'Barat Laut'];
+      const index = Math.round(azimuth / 45) % 8;
+      return directions[index];
+    }
+
+    function calculateSunsetAzimuth(lat, lng, date) {
+      // Simplified calculation - in real app, use more precise solar position algorithm
+      const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
+      const latRad = lat * Math.PI / 180;
+      
+      // Approximate declination
+      const declination = 23.45 * Math.sin((360 * (284 + dayOfYear) / 365) * Math.PI / 180);
+      const declinationRad = declination * Math.PI / 180;
+      
+      // Hour angle at sunset
+      const hourAngle = Math.acos(-Math.tan(latRad) * Math.tan(declinationRad));
+      
+      // Azimuth calculation (simplified)
+      const azimuth = 180 + (hourAngle * 180 / Math.PI);
+      
+      return Math.max(225, Math.min(315, azimuth)); // Clamp between SW and NW
+    }
+
+    async function getSunsetData() {
+      updateStatus('🔍', 'Mencari lokasi Anda...', true);
+      
       if (!navigator.geolocation) {
-        document.getElementById("status").textContent = "Browser tidak mendukung GPS.";
+        updateStatus('❌', 'Browser tidak mendukung GPS', false, true);
         return;
       }
 
-      navigator.geolocation.getCurrentPosition((pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        document.getElementById("status").textContent = "✅ Lokasi ditemukan.";
-        document.getElementById("location").textContent = `Koordinat: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-
-        fetch(`https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&formatted=0`)
-          .then(res => res.json())
-          .then(data => {
-            const sunsetUTC = new Date(data.results.sunset);
-            const localSunset = sunsetUTC.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            document.getElementById("sunset").textContent = `🌞 Sunset diperkirakan pukul: ${localSunset}`;
-            countdownToSunset(sunsetUTC);
+      try {
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 60000
           });
+        });
 
-        // Tips berburu sunset
-        const tipsList = [
-          "📷 Datang 15 menit sebelum sunset untuk warna terbaik.",
-          "🌄 Cari tempat terbuka atau agak tinggi untuk pemandangan maksimal.",
-          "🌤️ Cek prakiraan cuaca, langit cerah = warna cantik.",
-          "🧘 Sunset adalah waktu terbaik untuk refleksi diri."
-        ];
-        const randomTip = tipsList[Math.floor(Math.random() * tipsList.length)];
-        document.getElementById("tips").textContent = `💡 Tips: ${randomTip}`;
-      }, () => {
-        document.getElementById("status").textContent = "❌ Gagal mendapatkan lokasi.";
+        currentLat = position.coords.latitude;
+        currentLng = position.coords.longitude;
+
+        document.getElementById('locationText').textContent = 
+          `📍 ${currentLat.toFixed(4)}, ${currentLng.toFixed(4)}`;
+
+        updateStatus('🌐', 'Mengambil data sunset...', true);
+
+        const response = await fetch(
+          `https://api.sunrise-sunset.org/json?lat=${currentLat}&lng=${currentLng}&formatted=0`
+        );
+        
+        if (!response.ok) throw new Error('Network error');
+        
+        const data = await response.json();
+        
+        if (data.status !== 'OK') throw new Error('API error');
+
+        // Parse times
+        const sunsetUTC = new Date(data.results.sunset);
+        const sunriseUTC = new Date(data.results.sunrise);
+        const localSunset = sunsetUTC.toLocaleTimeString('id-ID', { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        });
+        const localSunrise = sunriseUTC.toLocaleTimeString('id-ID', { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        });
+
+        // Calculate day length
+        const dayLengthMs = sunsetUTC - sunriseUTC;
+        const dayLengthHours = Math.floor(dayLengthMs / (1000 * 60 * 60));
+        const dayLengthMinutes = Math.floor((dayLengthMs % (1000 * 60 * 60)) / (1000 * 60));
+
+        // Calculate sunset direction
+        sunsetAzimuth = calculateSunsetAzimuth(currentLat, currentLng, new Date());
+        const direction = getDirectionFromAzimuth(sunsetAzimuth);
+
+        // Update UI
+        document.getElementById('sunsetTime').textContent = localSunset;
+        document.getElementById('sunriseTime').textContent = localSunrise;
+        document.getElementById('dayLength').textContent = `${dayLengthHours}j ${dayLengthMinutes}m`;
+        document.getElementById('sunsetDirection').textContent = direction;
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('id-ID');
+        document.getElementById('directionText').textContent = `Sunset ke arah ${direction}`;
+        document.getElementById('degreeText').textContent = `${sunsetAzimuth.toFixed(0)}° dari Utara`;
+
+        updateStatus('✅', 'Data berhasil dimuat!', false, false);
+        document.getElementById('infoGrid').style.display = 'grid';
+        
+        drawCompass();
+
+      } catch (error) {
+        console.error('Error:', error);
+        updateStatus('❌', 'Gagal mendapatkan data', false, true);
+      }
+    }
+
+    function refreshLocation() {
+      document.getElementById('buttonText').innerHTML = '<span class="loading-spinner"></span>Memuat...';
+      document.getElementById('infoGrid').style.display = 'none';
+      
+      getSunsetData().finally(() => {
+        document.getElementById('buttonText').textContent = '🔄 Refresh Lokasi';
       });
     }
 
-    updateBackground();
-    ambilDataSunset();
+    function shareLocation() {
+      if (currentLat && currentLng) {
+        const sunsetTime = document.getElementById('sunsetTime').textContent;
+        const direction = document.getElementById('directionText').textContent;
+        
+        const shareText = `🌅 Sunset hari ini pukul ${sunsetTime}\n📍 Lokasi: ${currentLat.toFixed(4)}, ${currentLng.toFixed(4)}\n🧭 ${direction}\n\nDitemukan dengan Sunset Finder`;
+        
+        if (navigator.share) {
+          navigator.share({
+            title: 'Waktu Sunset Hari Ini',
+            text: shareText
+          });
+        } else {
+          navigator.clipboard.writeText(shareText).then(() => {
+            alert('Informasi sunset telah disalin ke clipboard!');
+          });
+        }
+      } else {
+        alert('Silakan refresh lokasi terlebih dahulu');
+      }
+    }
+
+    // Initialize app
+    drawCompass();
+    getSunsetData();
+
+    // Auto refresh every 5 minutes
+    setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        getSunsetData();
+      }
+    }, 300000);
   </script>
 </body>
 </html>
